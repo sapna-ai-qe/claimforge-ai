@@ -1,1 +1,14 @@
-
+claimforge-ai/
+├── README.md
+├── docs/
+│   ├── ARCHITECTURE.md
+│   ├── DATA_MODEL.md              ← new
+│   ├── architecture_system.png
+│   ├── architecture_system.svg
+│   ├── architecture_agent_flow.png
+│   └── architecture_agent_flow.svg
+├── src/
+│   └── claimforge/
+│       ├── __init__.py            ← empty file
+│       └── models.py              ← new
+└── requirements.txt               ← will need pydantic, see below
