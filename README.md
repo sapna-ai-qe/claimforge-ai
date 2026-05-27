@@ -42,5 +42,5 @@ Early development. See `docs/` for architecture notes and the build plan.
 
 ## Author
 
-[Your name] — building this to learn the insurance claims domain and modern
+Sapna — building this to learn the insurance claims domain and modern
 agentic LLM techniques.
