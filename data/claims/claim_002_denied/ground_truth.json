@@ -1,0 +1,138 @@
+{
+  "_meta": {
+    "scenario_name": "Claim 002 - Denial via excluded driver, with misstatement fraud signal",
+    "scenario_purpose": "Tests the denial branch of the agent flow. The actual driver (Diego Rodriguez) is named on the policy's excluded driver list. Multiple coverages (Liability, Collision, Comprehensive, MedPay) all carry excluded-driver exclusions that bar coverage. The Coverage node must retrieve from multiple policy sections and cite each one. Separately, the Fraud node should flag the discrepancy between the FNOL (Maria says she was driving) and the police report (Diego was the sole driver).",
+    "expected_final_status": "DENIED",
+    "expected_letter_type": "DENIAL",
+    "expected_decision_path": "extract → coverage_node → (covered? NO) → letter_node (denial)",
+    "_note_on_skipped_nodes": "Liability, damage, fraud, and reserve nodes should NOT run in production flow because coverage is denied first. However, for evaluation purposes the fraud signals ARE included below — when this scenario is run with all-nodes-on (debug mode), the Fraud node should detect the FNOL/police-report mismatch even though it's not part of the production decision path."
+  },
+
+  "extracted_claim": {
+    "claim_number": "CAI-CLM-2026-002413",
+    "policy_number": "CAI-CT-887412-03",
+    "date_of_loss": "2026-04-05",
+    "date_reported": "2026-04-06",
+    "state_of_loss": "CT",
+    "description": "Insured's 2019 Honda CR-V backed into a legally parked 2021 Subaru Outback while pulling out of a parking space on Spring Street, Manchester, CT. Low-speed contact, no injuries, both vehicles drivable. Police report identifies Diego Rodriguez (son of named insured, listed on policy as an excluded driver) as the sole driver and at-fault party.",
+    "insured": {
+      "full_name": "Maria Elena Rodriguez",
+      "date_of_birth": "1984-04-22",
+      "address": "142 Oak Hill Road, Manchester, CT 06040",
+      "phone": "(860) 555-2847",
+      "email": "maria.rodriguez.ct@example.com",
+      "drivers_license_number": "587412963",
+      "drivers_license_state": "CT"
+    },
+    "claimant": {
+      "full_name": "Maria Elena Rodriguez",
+      "date_of_birth": "1984-04-22",
+      "address": "142 Oak Hill Road, Manchester, CT 06040",
+      "phone": "(860) 555-2847",
+      "email": "maria.rodriguez.ct@example.com",
+      "drivers_license_number": "587412963",
+      "drivers_license_state": "CT"
+    },
+    "vehicles": [
+      {
+        "vin": "5J6RW2H89KL027341",
+        "year": 2019,
+        "make": "Honda",
+        "model": "CR-V EX-L",
+        "license_plate": "CT-BC2-7104",
+        "license_plate_state": "CT"
+      }
+    ],
+    "drivers": [
+      {
+        "_vehicle_year_make_model": "2019 Honda CR-V EX-L",
+        "_person_name": "Diego Antonio Rodriguez",
+        "_person_dob": "2005-07-14",
+        "_person_dl": "CT 691438522",
+        "is_covered_driver": false,
+        "_note": "Diego is listed on the policy Declarations Page as an EXCLUDED DRIVER per signed Form CAI-EXCL-A dated 01/15/2026. This is the critical extraction — the agent must NOT mark Diego as the insured's driver, but as the actual operator at time of loss, and must surface that he is an excluded driver."
+      }
+    ],
+    "injuries": [],
+    "police_report_number": "MPD-2026-04-05-2287",
+    "citations_issued": [
+      "CT-2026-04-T-9921 (issued to Diego A. Rodriguez, improper backing per CGS 14-243(a))"
+    ],
+    "source_documents": ["fnol.md", "police_report.md", "repair_estimate.md", "damage_photos.md"],
+    "extraction_confidence": {
+      "policy_number": 1.0,
+      "date_of_loss": 1.0,
+      "state_of_loss": 1.0,
+      "insured.full_name": 1.0,
+      "vehicles[0].vin": 1.0,
+      "drivers[0]._person_name": 0.95,
+      "drivers[0].is_covered_driver": 1.0,
+      "_extraction_note": "The driver identity should be extracted from the POLICE REPORT, not the FNOL, because the FNOL contains a misstatement. The agent should prefer the more authoritative source (police report) when sources conflict on a factual question. This is a critical reasoning step that the extraction layer needs to handle correctly — either via prompt instruction or via cross-source reconciliation logic."
+    }
+  },
+
+  "coverage_analysis": {
+    "is_covered": false,
+    "policy_in_force_on_date_of_loss": true,
+    "driver_is_covered": false,
+    "applicable_coverages": [
+      {
+        "coverage_type": "property_damage_liability",
+        "applies": false,
+        "limit": {"amount": "50000.00", "currency": "USD"},
+        "deductible": null,
+        "triggering_conditions_met": false,
+        "exclusions_invoked": ["Excluded driver (Part II.B.8)"],
+        "reasoning": "Coverage would normally apply to damage caused to the third-party vehicle (Subaru Outback). However, the operator of the insured vehicle at the time of loss was Diego A. Rodriguez, who is listed as an EXCLUDED DRIVER on the policy Declarations Page. Per Part II, Section B, Exclusion 8: 'We do not provide Liability Coverage for any insured person who is an excluded driver as listed on the Declarations Page. No coverage of any kind is provided under this policy for any loss arising from the operation of any vehicle by an excluded driver.' Coverage is denied.",
+        "_expected_citations": ["Policy Declarations Page — Excluded Drivers section", "Policy Part II, Section B, Exclusion 8"]
+      },
+      {
+        "coverage_type": "collision",
+        "applies": false,
+        "limit": {"amount": "19420.00", "currency": "USD"},
+        "deductible": {"amount": "500.00", "currency": "USD"},
+        "triggering_conditions_met": false,
+        "exclusions_invoked": ["Excluded driver (Part III.B.4)"],
+        "reasoning": "Coverage would normally apply to the damage to the insured CR-V (collision with another vehicle). However, the operator was an excluded driver. Per Part III, Section B, Exclusion 4: 'We will not pay for loss while being operated by an excluded driver.' Coverage is denied.",
+        "_expected_citations": ["Policy Declarations Page — Excluded Drivers section", "Policy Part III, Section B, Exclusion 4"]
+      }
+    ],
+    "overall_reasoning": "The named-driver exclusion bars coverage for ALL coverages provided by this policy when the operator at the time of loss is Diego A. Rodriguez. The policy's excluded-driver clause appears in Part II (Liability), Part III (Collision), Part IV (Comprehensive), and Part VI (Medical Payments). Diego was confirmed as the sole operator by independent police report and witness statement (Marcus Patel). The claim is denied in full.",
+    "confidence": 0.96
+  },
+
+  "_skipped_in_production": {
+    "_note": "The following nodes (liability, damage, reserve) would NOT execute in the production decision path because the coverage_node short-circuits to the denial_letter once is_covered=false. They are listed here only to document what their outputs WOULD be if forced to run, useful for debugging and for the all-nodes evaluation mode.",
+    "liability_analysis_if_run": "Fault would be 100% on Diego Rodriguez. Vehicle 2 (Subaru) was legally parked and unoccupied. Police citation supports fault assignment. Irrelevant to coverage decision.",
+    "damage_analysis_if_run": "Minor cosmetic damage. Repair estimate $1,168.21. ACV $19,420. Repair cost ~6% of ACV. Not a total loss. Irrelevant to coverage decision."
+  },
+
+  "fraud_signals": [
+    {
+      "signal_type": "driver_identity_misstatement",
+      "severity": "high",
+      "description": "Named insured Maria Rodriguez stated on the FNOL form (submitted via phone on 04/06/2026 at 09:14) that she was the driver at the time of loss. However, the police report from 04/05/2026 (filed by Officer R. Delgado, MPD Badge #2287) identifies Diego A. Rodriguez as the sole driver, with independent witness corroboration from neighbor Marcus Patel ('There was no other driver in the car. He was alone.'). The misstatement appears material because Diego is an excluded driver on the policy and his being the driver would (and does) result in denial of coverage. The misstatement may invoke Policy Part VII, Section C (Fraud), which voids the entire policy in cases of intentional misrepresentation of material facts.",
+      "_expected_evidence_citations": [
+        "FNOL Section C — 'Driver at Time of Loss: Maria Elena Rodriguez'",
+        "FNOL Section G — claimant's signed acknowledgment of accuracy",
+        "Police report narrative — 'Driver of Vehicle 1 was identified as Diego Antonio Rodriguez'",
+        "Police report — witness statement of Marcus Patel"
+      ],
+      "confidence": 0.94
+    }
+  ],
+
+  "expected_letter": {
+    "letter_type": "denial",
+    "_subject_template": "Constellation Insurance Claim {claim_number} — Coverage Denied",
+    "_body_summary": "Acknowledges receipt of claim. States that the claim is denied because the operator of the insured vehicle at the time of loss is an excluded driver under the policy. Quotes the policy Declarations Page (excluded drivers section). Quotes Policy Part II, Section B, Exclusion 8 verbatim. Notes that excluded-driver clauses also bar coverage under Parts III, IV, and VI. Notes the insured's rights to appeal the denial, including the Connecticut Insurance Department's contact information. Includes a separate note that the carrier is reviewing the FNOL submission for material misrepresentation under Part VII, Section C (Fraud), and that the insured will be contacted separately regarding that review.",
+    "_must_cite_policy_sections": [
+      "Declarations Page — Excluded Drivers",
+      "Part II, Section B, Exclusion 8",
+      "Part III, Section B, Exclusion 4",
+      "Part IV, Section B, Exclusion 4",
+      "Part VI, Section B, Exclusion 2",
+      "Part VII, Section C — Fraud"
+    ]
+  }
+}
