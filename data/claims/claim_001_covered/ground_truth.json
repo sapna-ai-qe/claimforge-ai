@@ -1,0 +1,166 @@
+{
+  "_meta": {
+    "scenario_name": "Claim 001 - Covered claim, clear third-party liability",
+    "scenario_purpose": "Happy-path test. Should sail through coverage approval with high confidence at every stage. Used as the baseline correctness check for the full pipeline.",
+    "expected_final_status": "READY_TO_DECIDE",
+    "expected_letter_type": "COVERAGE_DECISION"
+  },
+
+  "extracted_claim": {
+    "claim_number": "CAI-CLM-2026-001847",
+    "policy_number": "CAI-CT-887412-03",
+    "date_of_loss": "2026-03-18",
+    "date_reported": "2026-03-18",
+    "state_of_loss": "CT",
+    "description": "Insured was stopped at a stop sign on Main Street northbound at Capitol Avenue in Hartford, CT when struck from behind by a 2018 Ford F-150 operated by Brandon Whitaker. Other driver admitted fault, was cited for distracted driving and following too closely. Insured reported mild neck soreness but declined transport. Vehicle drivable from scene.",
+    "insured": {
+      "full_name": "Maria Elena Rodriguez",
+      "date_of_birth": "1984-04-22",
+      "address": "142 Oak Hill Road, Manchester, CT 06040",
+      "phone": "(860) 555-2847",
+      "email": "maria.rodriguez.ct@example.com",
+      "drivers_license_number": "587412963",
+      "drivers_license_state": "CT"
+    },
+    "claimant": {
+      "full_name": "Maria Elena Rodriguez",
+      "date_of_birth": "1984-04-22",
+      "address": "142 Oak Hill Road, Manchester, CT 06040",
+      "phone": "(860) 555-2847",
+      "email": "maria.rodriguez.ct@example.com",
+      "drivers_license_number": "587412963",
+      "drivers_license_state": "CT"
+    },
+    "vehicles": [
+      {
+        "vin": "4T1G11AK7NU634892",
+        "year": 2022,
+        "make": "Toyota",
+        "model": "Camry SE",
+        "license_plate": "CT-AH7-2841",
+        "license_plate_state": "CT"
+      }
+    ],
+    "drivers": [
+      {
+        "_vehicle_year_make_model": "2022 Toyota Camry SE",
+        "_person_name": "Maria Elena Rodriguez",
+        "is_covered_driver": true
+      }
+    ],
+    "injuries": [
+      {
+        "_person_name": "Maria Elena Rodriguez",
+        "description": "Mild neck soreness, possible whiplash",
+        "severity": "low",
+        "medical_treatment_received": false
+      }
+    ],
+    "police_report_number": "HPD-2026-03-18-4471",
+    "citations_issued": [
+      "CT-2026-03-T-7714 (issued to Brandon Whitaker, third party)"
+    ],
+    "source_documents": ["fnol.md", "police_report.md", "repair_estimate.md", "damage_photos.md"],
+    "extraction_confidence": {
+      "claim_number": 1.0,
+      "policy_number": 1.0,
+      "date_of_loss": 1.0,
+      "state_of_loss": 1.0,
+      "insured.full_name": 1.0,
+      "insured.date_of_birth": 1.0,
+      "vehicles[0].vin": 1.0,
+      "police_report_number": 1.0,
+      "injuries[0].severity": 0.85
+    }
+  },
+
+  "coverage_analysis": {
+    "is_covered": true,
+    "policy_in_force_on_date_of_loss": true,
+    "driver_is_covered": true,
+    "applicable_coverages": [
+      {
+        "coverage_type": "collision",
+        "applies": true,
+        "limit": {"amount": "26840.00", "currency": "USD"},
+        "deductible": {"amount": "500.00", "currency": "USD"},
+        "triggering_conditions_met": true,
+        "exclusions_invoked": [],
+        "reasoning": "Insured vehicle struck by another vehicle while operated by named insured. Collision coverage applies per Part III.A. No exclusions are triggered (vehicle was for pleasure use, not racing/business/livery; driver is not an excluded driver). Limit is ACV of the vehicle; deductible is $500.",
+        "_expected_citations": ["Policy Part III, Section A (Insuring Agreement)", "Policy Declarations Page (limits and deductible)"]
+      },
+      {
+        "coverage_type": "medical_payments",
+        "applies": true,
+        "limit": {"amount": "5000.00", "currency": "USD"},
+        "deductible": null,
+        "triggering_conditions_met": true,
+        "exclusions_invoked": [],
+        "reasoning": "Insured reports neck soreness from the accident. MedPay coverage applies per Part VI.A — bodily injury caused by auto accident, sustained by an insured person. No exclusions triggered. Treatment must be within 3 years of accident.",
+        "_expected_citations": ["Policy Part VI, Section A", "Policy Declarations Page (MedPay limit)"]
+      }
+    ],
+    "_note_on_third_party_recovery": "Insurer may pursue subrogation against Liberty Mutual (Brandon Whitaker's carrier) under collision coverage, since third-party liability is clear. Subrogation flag should be set on this claim.",
+    "overall_reasoning": "Policy is in force on date of loss (03/18/2026 falls within policy period 01/15/2026 - 01/15/2027). Insured was operating her own covered vehicle (2022 Camry, VIN 4T1G11AK7NU634892, listed on Declarations Page). She is a named insured. No exclusions apply. Collision and MedPay coverages both trigger. Claim is covered.",
+    "confidence": 0.97
+  },
+
+  "liability_analysis": {
+    "fault_basis": "comparative",
+    "party_fault_percentages": {
+      "Brandon James Whitaker (third party)": 100.0,
+      "Maria Elena Rodriguez (insured)": 0.0
+    },
+    "primary_contributing_factor": "Distracted driving by third-party driver (cell phone use) leading to failure to maintain proper following distance and lookout.",
+    "reasoning": "Police report identifies Brandon Whitaker as the sole at-fault party. He was cited for two violations (CGS 14-218a and 14-296aa) and verbally admitted fault at the scene ('It's my fault, I should have been watching the road'). Independent witness (Jennifer Bowers) corroborates that the insured was completely stopped at the stop sign and that the third party was looking down at the time of impact. No contributing factors are identified against the insured. Connecticut follows comparative negligence, but in this case the third party bears 100% of the fault.",
+    "_expected_citations": ["Police report HPD-2026-03-18-4471 — narrative and contributing factors sections", "Police report — citations issued"],
+    "confidence": 0.96
+  },
+
+  "damage_analysis": {
+    "per_vehicle": [
+      {
+        "_vehicle_vin": "4T1G11AK7NU634892",
+        "damaged_areas": [
+          "rear_bumper",
+          "trunk_lid",
+          "rear_quarter_panel_driver",
+          "rear_quarter_panel_passenger",
+          "trunk_floor_pan"
+        ],
+        "severity": "medium",
+        "repair_estimate_amount": {"amount": "4146.37", "currency": "USD"},
+        "acv": {"amount": "26840.00", "currency": "USD"},
+        "is_total_loss": false,
+        "_photos_analyzed": ["IMG_001_rear_overall", "IMG_002_bumper_closeup", "IMG_003_trunk_alignment", "IMG_004_trunk_interior", "IMG_005_quarter_driver", "IMG_006_quarter_passenger"],
+        "reasoning": "Damage is consistent with rear-end impact at low-to-moderate speed. Bumper cover, reinforcement bar, and trunk lid require replacement; both quarter panels are repairable. No frame damage observed. Estimated repair cost ($4,146.37) is approximately 15% of ACV ($26,840), well below the 75% total loss threshold defined in Policy Part III.C. Vehicle is repairable."
+      }
+    ],
+    "overall_reasoning": "Single-vehicle damage analysis. Repair feasible. Total loss threshold not triggered.",
+    "confidence": 0.92
+  },
+
+  "fraud_signals": [],
+
+  "_expected_fraud_assessment_notes": "Clean claim. All documents internally consistent: dates align (loss reported same day), damage pattern matches narrative (rear-end damage, struck while stopped), VIN matches policy, photo geolocation matches insured's residence, photo timestamps consistent with reported timeline, third-party fault corroborated by independent witness and citations. No prior pattern flags. Fraud signal list should be empty.",
+
+  "reserve_recommendation": {
+    "indemnity_reserve": {"amount": "5000.00", "currency": "USD"},
+    "lae_reserve": {"amount": "800.00", "currency": "USD"},
+    "total_reserve": {"amount": "5800.00", "currency": "USD"},
+    "breakdown_by_coverage": {
+      "collision": {"amount": "4146.37", "currency": "USD"},
+      "medical_payments": {"amount": "850.00", "currency": "USD"}
+    },
+    "_expected_similar_claims_referenced": "Should reference 2-3 prior CT rear-end collisions with comparable severity and repair cost from the past claims RAG (once populated).",
+    "reasoning": "Indemnity reserve = repair estimate ($4,146.37) rounded up + supplement contingency + MedPay reserve (~$850 anticipated based on reported injury severity). Subtotal ~$5,000. LAE reserve at industry-standard 15-20% of indemnity, rounded to $800. Total reserve $5,800. Reserve assumes successful subrogation recovery from Liberty Mutual; this should be tracked separately and not netted against this reserve until recovery is realized.",
+    "confidence": 0.85
+  },
+
+  "expected_letter": {
+    "letter_type": "coverage_decision",
+    "_subject_template": "Constellation Insurance Claim {claim_number} — Coverage Confirmed",
+    "_body_summary": "Acknowledges receipt of FNOL on 03/18/2026. Confirms policy is in force. Confirms Collision and MedPay coverage applies with respective limits and deductibles. Notes that the carrier will pursue subrogation against Liberty Mutual on the insured's behalf. Confirms next steps for repair authorization and any medical treatment reimbursement. Provides direct claim contact information.",
+    "_must_cite_policy_sections": ["Part III.A (Collision Insuring Agreement)", "Part VI.A (MedPay Insuring Agreement)", "Declarations Page (limits and deductibles)"]
+  }
+}
