@@ -1,122 +1,201 @@
 {
   "_meta": {
-    "scenario_name": "Claim 003 - Fraud scenario, staged hit-and-run misrepresentation",
-    "scenario_purpose": "Tests the agent's ability to detect material misrepresentation when the claimant falsely reports a third-party hit-and-run. The system should identify the inconsistency between the FNOL, police evidence, and photo/video evidence, and deny the claim under the policy's Fraud / Intentional Misrepresentation provision.",
-    "expected_final_status": "DENIED",
-    "expected_letter_type": "DENIAL",
-    "expected_decision_path": "extract → fraud_node → coverage_node → denial_letter",
-    "_note_on_skipped_nodes": "Liability and reserve nodes are not required for the production denial path because the claim should be denied for material misrepresentation before indemnity is evaluated. They can still be generated in debug mode for completeness."
+    "scenario_name": "Claim 003 - Multiple fraud signals, SIU referral",
+    "scenario_purpose": "Tests the Fraud node's multi-signal reasoning and the SIU referral branch of the agent flow. Unlike Claim 002 (a single clear misstatement), this claim has NO single smoking gun — instead it has a CONSTELLATION of moderate red flags that, taken together, exceed the SIU referral threshold. The agent must aggregate signals across multiple documents (FNOL, investigation note, repair estimate, photos) and reason about cumulative suspicion. The correct outcome is NOT denial (insufficient basis without investigation) and NOT payment (too many red flags), but a PAUSE for SIU investigation.",
+    "expected_final_status": "SIU_REFERRED",
+    "expected_letter_type": "SIU_REFERRAL",
+    "expected_decision_path": "extract → coverage (covered, pending) → liability (N/A, parked) → damage → fraud_node → (cumulative HIGH signal) → SIU referral / pause",
+    "_key_teaching_point": "This scenario demonstrates that fraud detection is about PATTERN RECOGNITION across multiple weak signals, not just catching one obvious lie. This is the hardest reasoning task in the pipeline and the best showcase of agentic multi-document reasoning."
   },
 
   "extracted_claim": {
-    "claim_number": "CAI-CLM-2026-003729",
-    "policy_number": "CAI-CT-887412-03",
-    "date_of_loss": "2026-05-09",
-    "date_reported": "2026-05-10",
+    "claim_number": "CAI-CLM-2026-003156",
+    "policy_number": "CAI-CT-554208-01",
+    "date_of_loss": "2026-03-14",
+    "date_reported": "2026-03-30",
     "state_of_loss": "CT",
-    "description": "Claimant reported a hit-and-run by an unknown dark SUV while parked in her driveway, but police report and security camera footage show the insured vehicle reversing into a mailbox post and utility pole with no third-party vehicle present. Damage is consistent with a single-vehicle backing event. The claimant's FNOL misstates the cause of loss, which is material to coverage.",
+    "description": "Claimant reports an overnight hit-and-run to his parked 2016 BMW 335i near his West Hartford residence, with damage to the front bumper, hood, and driver-side headlight. No police report filed. Reported 16 days after the stated date of loss. Filed under Comprehensive coverage.",
     "insured": {
-      "full_name": "Maria Elena Rodriguez",
-      "date_of_birth": "1984-04-22",
-      "address": "142 Oak Hill Road, Manchester, CT 06040",
-      "phone": "(860) 555-2847",
-      "email": "maria.rodriguez.ct@example.com",
-      "drivers_license_number": "587412963",
+      "full_name": "Kevin Marcus Donnelly",
+      "date_of_birth": "1993-11-08",
+      "address": "39 Birchwood Lane, Apt 4, West Hartford, CT 06107",
+      "phone": "(860) 555-7731",
+      "email": "kdonnelly.wh@example.com",
+      "drivers_license_number": "442910385",
       "drivers_license_state": "CT"
     },
     "claimant": {
-      "full_name": "Maria Elena Rodriguez",
-      "date_of_birth": "1984-04-22",
-      "address": "142 Oak Hill Road, Manchester, CT 06040",
-      "phone": "(860) 555-2847",
-      "email": "maria.rodriguez.ct@example.com",
-      "drivers_license_number": "587412963",
+      "full_name": "Kevin Marcus Donnelly",
+      "date_of_birth": "1993-11-08",
+      "address": "39 Birchwood Lane, Apt 4, West Hartford, CT 06107",
+      "phone": "(860) 555-7731",
+      "email": "kdonnelly.wh@example.com",
+      "drivers_license_number": "442910385",
       "drivers_license_state": "CT"
     },
     "vehicles": [
       {
-        "vin": "JF2SKAKC7MH470958",
-        "year": 2021,
-        "make": "Subaru",
-        "model": "Forester Sport XT",
-        "license_plate": "CT-BX3-1011",
+        "vin": "WBA8E3C56GK502841",
+        "year": 2016,
+        "make": "BMW",
+        "model": "335i",
+        "license_plate": "CT-KD3-1192",
         "license_plate_state": "CT"
       }
     ],
-    "drivers": [
-      {
-        "_vehicle_year_make_model": "2021 Subaru Forester Sport XT",
-        "_person_name": "Maria Elena Rodriguez",
-        "is_covered_driver": true
-      }
-    ],
+    "drivers": [],
     "injuries": [],
-    "police_report_number": "MPD-2026-05-09-3351",
+    "police_report_number": null,
     "citations_issued": [],
-    "source_documents": ["fnol.md", "police_report.md", "repair_estimate.md", "damage_photos.md"],
+    "source_documents": ["fnol.md", "adjuster_investigation_note.md", "repair_estimate.md", "damage_photos.md"],
     "extraction_confidence": {
-      "claim_number": 1.0,
       "policy_number": 1.0,
-      "date_of_loss": 1.0,
+      "date_of_loss": 0.7,
+      "date_reported": 1.0,
       "state_of_loss": 1.0,
       "insured.full_name": 1.0,
       "vehicles[0].vin": 1.0,
-      "drivers[0].is_covered_driver": 1.0,
-      "_extraction_note": "The agent should reconcile the FNOL claim of a hit-and-run with the police/security camera evidence showing a single-vehicle backing accident. This describes a material factual conflict between sources."
+      "_date_of_loss_note": "Confidence on date_of_loss is lowered to 0.7 because the claimant himself was uncertain ('sometime that night, I'm not totally sure') and there is no corroborating documentation (no police report, no date-of-loss photos)."
     }
   },
 
   "coverage_analysis": {
-    "is_covered": false,
+    "is_covered": true,
+    "_coverage_caveat": "Coverage is potentially applicable but PENDING fraud investigation. The is_covered=true reflects that, on its face and absent the fraud concerns, comprehensive coverage would respond to a genuine hit-and-run. It should NOT be read as authorization to pay. The fraud signals override progression to payment.",
     "policy_in_force_on_date_of_loss": true,
     "driver_is_covered": true,
     "applicable_coverages": [
       {
-        "coverage_type": "collision",
-        "applies": false,
-        "limit": {"amount": "24830.00", "currency": "USD"},
-        "deductible": {"amount": "500.00", "currency": "USD"},
-        "triggering_conditions_met": false,
-        "exclusions_invoked": ["Fraud / intentional misrepresentation (Part VII, Section C)"],
-        "reasoning": "Collision coverage would normally apply to damage incurred by the insured vehicle while backing into a fixed object. However, the claimant intentionally misrepresented the cause of loss as a hit-and-run by an unknown vehicle. Policy Part VII, Section C bars coverage for losses arising from material misrepresentation or fraudulent statements in the claim. This is a coverage denial, not a simple liability determination.",
-        "_expected_citations": ["Policy Part VII, Section C (Fraud / Intentional Misrepresentation)"]
-      },
-      {
         "coverage_type": "comprehensive",
-        "applies": false,
-        "limit": {"amount": "24830.00", "currency": "USD"},
-        "deductible": {"amount": "500.00", "currency": "USD"},
-        "triggering_conditions_met": false,
-        "exclusions_invoked": ["Fraud / intentional misrepresentation (Part VII, Section C)"],
-        "reasoning": "Comprehensive coverage is also barred by the same Fraud / Intentional Misrepresentation provision when the insured deliberately misrepresents material facts. The claim cannot be paid under any applicable physical damage coverage because the insured falsely claimed a third-party event. Coverage denial is based on the fraud clause.",
-        "_expected_citations": ["Policy Part VII, Section C (Fraud / Intentional Misrepresentation)"]
+        "applies": true,
+        "limit": {"amount": "14900.00", "currency": "USD"},
+        "deductible": {"amount": "250.00", "currency": "USD"},
+        "triggering_conditions_met": true,
+        "exclusions_invoked": [],
+        "reasoning": "Comprehensive coverage (Part IV) responds to losses other than collision, including damage to a parked vehicle by an unknown party (vandalism/hit-and-run while parked). On its face the loss type qualifies. Policy in force; deductible $250. HOWEVER, payment is contingent on the loss being genuine, which is the subject of the fraud concerns below.",
+        "_expected_citations": ["Policy Part IV, Section A (Comprehensive Insuring Agreement)", "Policy Declarations Page (Comprehensive deductible)"]
       }
     ],
-    "overall_reasoning": "The policy was in force on the date of loss, and the named insured is a covered driver. The reported damage pattern, witness statement, and security camera evidence all point to a single-vehicle backing accident into a stationary object. The insured's FNOL deliberately misstates the event as a hit-and-run by an unknown vehicle. This material misrepresentation triggers the policy's fraud exclusion and results in a denial of coverage.",
-    "confidence": 0.95
+    "overall_reasoning": "Comprehensive coverage would apply to a genuine hit-and-run on a parked vehicle. Policy is in force on the stated date of loss. No exclusions bar coverage on the facts as presented. The decisive issue is not coverage but whether the loss occurred as described — which the fraud signals call into serious question.",
+    "confidence": 0.6
+  },
+
+  "liability_analysis": {
+    "_note": "Liability analysis is N/A for a comprehensive claim on a parked, unoccupied vehicle. There is no liable party to assess (the at-fault party fled and is unknown). This node would effectively be skipped or return a null result for this claim type.",
+    "fault_basis": "no_fault",
+    "party_fault_percentages": {
+      "Unknown third party (fled)": 100.0
+    },
+    "primary_contributing_factor": "Unknown — alleged hit-and-run by an unidentified party. No liability assessment possible.",
+    "reasoning": "Vehicle was parked and unoccupied. If the loss is genuine, fault lies entirely with the unidentified party who fled. No comparative fault analysis applies to the insured. This analysis is not material to the claim outcome, which turns on the fraud investigation.",
+    "confidence": 0.5
+  },
+
+  "damage_analysis": {
+    "per_vehicle": [
+      {
+        "_vehicle_vin": "WBA8E3C56GK502841",
+        "damaged_areas": [
+          "front_bumper",
+          "hood",
+          "headlight_driver_side",
+          "fender_driver_side"
+        ],
+        "severity": "medium",
+        "repair_estimate_amount": {"amount": "4631.07", "currency": "USD"},
+        "acv": {"amount": "14900.00", "currency": "USD"},
+        "is_total_loss": false,
+        "_photos_analyzed": ["IMG_001_front_overall", "IMG_002_bumper_crack", "IMG_003_hood_crease", "IMG_004_headlight", "IMG_005_fender"],
+        "reasoning": "Damage is to the front of the vehicle (bumper, hood, headlight, fender). Repair cost ($4,631.07) is ~31% of ACV ($14,900); below the 75% total loss threshold, so repairable. CRITICAL FINDING: the damage analysis must surface the physical evidence that the damage appears AGED (oxidation in bumper cracks, surface rust on exposed hood metal, internal moisture staining in headlight) and that the damage pattern (frontal) is INCONSISTENT with the claimant's described mechanism (side-swipe). These findings feed directly into the fraud node."
+      }
+    ],
+    "overall_reasoning": "Damage is repairable. However, the physical characteristics of the damage (weathering/aging) and the mismatch between damage pattern and described cause are material to the fraud assessment, not just the repair cost.",
+    "confidence": 0.8
   },
 
   "fraud_signals": [
     {
-      "signal_type": "staged_hit_and_run",
+      "signal_type": "damage_age_inconsistency",
       "severity": "high",
-      "description": "The claimant reported a third-party hit-and-run, but the police report and security camera footage show the insured vehicle backed into a stationary mailbox post and utility pole with no other vehicle present. The damage pattern and paint transfer are consistent with a self-inflicted backing event. This is a material misrepresentation of the cause of loss, which is subject to the policy's fraud provision.",
+      "description": "Multiple independent physical indicators suggest the damage is significantly older than the stated date of loss (03/14/2026, ~16 days before inspection). The repair estimator noted oxidation within the bumper cover cracks and light surface rust on the exposed metal at the hood crease. The damage photos corroborate this and add internal moisture staining within the cracked headlight assembly (suggesting multiple rain cycles of exposure). Fresh damage (~2 weeks old) would show clean fracture surfaces, bright exposed metal, and minimal moisture intrusion. The observed weathering is more consistent with damage that is weeks to months old.",
       "_expected_evidence_citations": [
-        "FNOL Section B — reported hit-and-run by an unknown dark SUV",
-        "Police report narrative — single-vehicle backing collision, no other vehicle observed",
-        "Police report — neighbor witness statement confirming the insured backed into the mailbox",
-        "Damage photos — white paint transfer on mailbox and no third-party paint transfer"
+        "Repair estimate — estimator observation on weathering",
+        "Damage photos — Photo 2 (oxidation in bumper cracks)",
+        "Damage photos — Photo 3 (surface rust on hood metal)",
+        "Damage photos — Photo 4 (internal moisture staining in headlight)"
       ],
-      "confidence": 0.94
+      "confidence": 0.85
+    },
+    {
+      "signal_type": "prior_damage_record",
+      "severity": "high",
+      "description": "A BMW specialist service record dated 11/2025 (approximately 4 months before the stated date of loss) documents 'front-end cosmetic damage present, customer declined repair at this time.' This directly establishes that front-end damage existed on this vehicle well before the alleged hit-and-run, and is consistent with the weathered appearance of the current damage. This strongly suggests the claim may be an attempt to obtain insurance payment for pre-existing damage.",
+      "_expected_evidence_citations": [
+        "Adjuster investigation note — Section 4 (prior claim / vehicle history check)"
+      ],
+      "confidence": 0.8
+    },
+    {
+      "signal_type": "narrative_damage_mismatch",
+      "severity": "medium",
+      "description": "The claimant described the impact as a 'side-swipe' ('someone going by clipped the front driver's side'). However, the physical damage is concentrated on the front bumper center and hood with a frontal crush/crease pattern, with no lateral scraping along the body sides. A side-swipe and a frontal impact produce distinctly different damage patterns; the described mechanism does not match the observed damage.",
+      "_expected_evidence_citations": [
+        "FNOL Section B — claimant's description ('side-swipe')",
+        "Damage photos — Photo 1 (frontal impact pattern)"
+      ],
+      "confidence": 0.75
+    },
+    {
+      "signal_type": "late_reporting",
+      "severity": "medium",
+      "description": "The loss was reported 16 days after the stated date of loss (loss 03/14/2026, reported 03/30/2026). While within the policy's 30-day notice provision (Part VII.B), the delay is longer than typical for a claim of this severity and means there is a 16-day window during which the damage could have been incurred or worsened. Combined with the absence of date-of-loss documentation, the delay reduces the ability to verify the timing of the loss.",
+      "_expected_evidence_citations": [
+        "FNOL Section B — date of loss vs. report date",
+        "Adjuster investigation note — Section 2 (notice timeline)",
+        "Policy Part VII, Section B (Late Notice Provision)"
+      ],
+      "confidence": 0.7
+    },
+    {
+      "signal_type": "missing_police_report",
+      "severity": "medium",
+      "description": "No police report was filed for a claimed hit-and-run that caused front bumper, hood, and headlight damage. A police report is customary for hit-and-run claims and provides independent corroboration of the event. The claimant declined to file one. As a result, the only evidence that the loss occurred as described is the claimant's own statement. This is not itself proof of fraud, but it removes a key source of independent verification.",
+      "_expected_evidence_citations": [
+        "FNOL Section G — intake agent note on absence of police report",
+        "Adjuster investigation note — Section 3 (absence of police report)"
+      ],
+      "confidence": 0.65
+    },
+    {
+      "signal_type": "coverage_selection_pattern",
+      "severity": "low",
+      "description": "The claimant specifically requested filing under Comprehensive coverage (citing hit-and-run), which carries a lower deductible ($250 vs. $500 for Collision) and avoids the at-fault surcharge that a collision claim might trigger. While filing under the correct coverage for a genuine hit-and-run is appropriate, the claimant's explicit attention to coverage classification is a minor additional data point in the overall pattern.",
+      "_expected_evidence_citations": [
+        "FNOL Section B — claimant's stated preference to file under comprehensive",
+        "FNOL Section G — intake agent note on coverage selection"
+      ],
+      "confidence": 0.5
     }
   ],
 
+  "_fraud_aggregate_assessment": {
+    "individual_signals": 6,
+    "high_severity_count": 2,
+    "medium_severity_count": 3,
+    "low_severity_count": 1,
+    "aggregate_conclusion": "No single signal definitively proves fraud, but the CONSTELLATION of signals — particularly the two high-severity findings (aged damage + documented pre-existing damage) reinforced by the narrative mismatch, late reporting, and missing police report — collectively exceeds the threshold for SIU referral. The correct agent behavior is to PAUSE and refer to SIU, NOT to deny (insufficient basis without investigation) and NOT to pay (too many unresolved red flags).",
+    "recommended_action": "SIU_REFERRAL"
+  },
+
   "expected_letter": {
-    "letter_type": "denial",
-    "_subject_template": "Constellation Insurance Claim {claim_number} — Coverage Denied",
-    "_body_summary": "Acknowledges receipt of FNOL and explains that the claim is denied because the insured materially misrepresented the cause of loss. Cites the policy's Fraud / Intentional Misrepresentation provision (Part VII, Section C) and notes that the damage evidence is consistent with a single-vehicle backing event rather than a hit-and-run. Advises the insured of appeal rights and next steps for any dispute.",
-    "_must_cite_policy_sections": [
-      "Part VII, Section C — Fraud / Intentional Misrepresentation"
+    "letter_type": "siu_referral",
+    "_internal_vs_external": "Note: an SIU referral letter is typically an INTERNAL routing document, not a letter to the claimant. The claimant would receive a separate, carefully-worded acknowledgment that their claim is 'under review' WITHOUT alleging fraud (to avoid bad-faith and defamation exposure). For this scenario, the generated letter is the internal SIU referral memo.",
+    "_subject_template": "SIU REFERRAL — Claim {claim_number} — Multiple fraud indicators",
+    "_body_summary": "Internal memo to the Special Investigations Unit summarizing the claim and the six identified fraud indicators, organized by severity. States that coverage would facially apply but that payment is on hold pending investigation. Recommends specific investigative steps: (1) obtain the full 11/2025 BMW service record and photos if available, (2) examination under oath of the claimant per Part VII.A.3, (3) independent forensic inspection of the damage to date it, (4) canvass for any neighborhood video footage from the claimed date of loss, (5) social media / open-source review per SIU protocol. Notes the claimant should receive a neutral 'claim under review' acknowledgment in the interim.",
+    "_must_reference": [
+      "All six fraud signals",
+      "Policy Part VII, Section A.3 (right to examination under oath)",
+      "Policy Part VII, Section C (Fraud / policy voidance) as a potential outcome pending investigation"
     ]
   }
 }
