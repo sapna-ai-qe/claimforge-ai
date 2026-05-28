@@ -1,0 +1,122 @@
+{
+  "_meta": {
+    "scenario_name": "Claim 003 - Fraud scenario, staged hit-and-run misrepresentation",
+    "scenario_purpose": "Tests the agent's ability to detect material misrepresentation when the claimant falsely reports a third-party hit-and-run. The system should identify the inconsistency between the FNOL, police evidence, and photo/video evidence, and deny the claim under the policy's Fraud / Intentional Misrepresentation provision.",
+    "expected_final_status": "DENIED",
+    "expected_letter_type": "DENIAL",
+    "expected_decision_path": "extract → fraud_node → coverage_node → denial_letter",
+    "_note_on_skipped_nodes": "Liability and reserve nodes are not required for the production denial path because the claim should be denied for material misrepresentation before indemnity is evaluated. They can still be generated in debug mode for completeness."
+  },
+
+  "extracted_claim": {
+    "claim_number": "CAI-CLM-2026-003729",
+    "policy_number": "CAI-CT-887412-03",
+    "date_of_loss": "2026-05-09",
+    "date_reported": "2026-05-10",
+    "state_of_loss": "CT",
+    "description": "Claimant reported a hit-and-run by an unknown dark SUV while parked in her driveway, but police report and security camera footage show the insured vehicle reversing into a mailbox post and utility pole with no third-party vehicle present. Damage is consistent with a single-vehicle backing event. The claimant's FNOL misstates the cause of loss, which is material to coverage.",
+    "insured": {
+      "full_name": "Maria Elena Rodriguez",
+      "date_of_birth": "1984-04-22",
+      "address": "142 Oak Hill Road, Manchester, CT 06040",
+      "phone": "(860) 555-2847",
+      "email": "maria.rodriguez.ct@example.com",
+      "drivers_license_number": "587412963",
+      "drivers_license_state": "CT"
+    },
+    "claimant": {
+      "full_name": "Maria Elena Rodriguez",
+      "date_of_birth": "1984-04-22",
+      "address": "142 Oak Hill Road, Manchester, CT 06040",
+      "phone": "(860) 555-2847",
+      "email": "maria.rodriguez.ct@example.com",
+      "drivers_license_number": "587412963",
+      "drivers_license_state": "CT"
+    },
+    "vehicles": [
+      {
+        "vin": "JF2SKAKC7MH470958",
+        "year": 2021,
+        "make": "Subaru",
+        "model": "Forester Sport XT",
+        "license_plate": "CT-BX3-1011",
+        "license_plate_state": "CT"
+      }
+    ],
+    "drivers": [
+      {
+        "_vehicle_year_make_model": "2021 Subaru Forester Sport XT",
+        "_person_name": "Maria Elena Rodriguez",
+        "is_covered_driver": true
+      }
+    ],
+    "injuries": [],
+    "police_report_number": "MPD-2026-05-09-3351",
+    "citations_issued": [],
+    "source_documents": ["fnol.md", "police_report.md", "repair_estimate.md", "damage_photos.md"],
+    "extraction_confidence": {
+      "claim_number": 1.0,
+      "policy_number": 1.0,
+      "date_of_loss": 1.0,
+      "state_of_loss": 1.0,
+      "insured.full_name": 1.0,
+      "vehicles[0].vin": 1.0,
+      "drivers[0].is_covered_driver": 1.0,
+      "_extraction_note": "The agent should reconcile the FNOL claim of a hit-and-run with the police/security camera evidence showing a single-vehicle backing accident. This describes a material factual conflict between sources."
+    }
+  },
+
+  "coverage_analysis": {
+    "is_covered": false,
+    "policy_in_force_on_date_of_loss": true,
+    "driver_is_covered": true,
+    "applicable_coverages": [
+      {
+        "coverage_type": "collision",
+        "applies": false,
+        "limit": {"amount": "24830.00", "currency": "USD"},
+        "deductible": {"amount": "500.00", "currency": "USD"},
+        "triggering_conditions_met": false,
+        "exclusions_invoked": ["Fraud / intentional misrepresentation (Part VII, Section C)"],
+        "reasoning": "Collision coverage would normally apply to damage incurred by the insured vehicle while backing into a fixed object. However, the claimant intentionally misrepresented the cause of loss as a hit-and-run by an unknown vehicle. Policy Part VII, Section C bars coverage for losses arising from material misrepresentation or fraudulent statements in the claim. This is a coverage denial, not a simple liability determination.",
+        "_expected_citations": ["Policy Part VII, Section C (Fraud / Intentional Misrepresentation)"]
+      },
+      {
+        "coverage_type": "comprehensive",
+        "applies": false,
+        "limit": {"amount": "24830.00", "currency": "USD"},
+        "deductible": {"amount": "500.00", "currency": "USD"},
+        "triggering_conditions_met": false,
+        "exclusions_invoked": ["Fraud / intentional misrepresentation (Part VII, Section C)"],
+        "reasoning": "Comprehensive coverage is also barred by the same Fraud / Intentional Misrepresentation provision when the insured deliberately misrepresents material facts. The claim cannot be paid under any applicable physical damage coverage because the insured falsely claimed a third-party event. Coverage denial is based on the fraud clause.",
+        "_expected_citations": ["Policy Part VII, Section C (Fraud / Intentional Misrepresentation)"]
+      }
+    ],
+    "overall_reasoning": "The policy was in force on the date of loss, and the named insured is a covered driver. The reported damage pattern, witness statement, and security camera evidence all point to a single-vehicle backing accident into a stationary object. The insured's FNOL deliberately misstates the event as a hit-and-run by an unknown vehicle. This material misrepresentation triggers the policy's fraud exclusion and results in a denial of coverage.",
+    "confidence": 0.95
+  },
+
+  "fraud_signals": [
+    {
+      "signal_type": "staged_hit_and_run",
+      "severity": "high",
+      "description": "The claimant reported a third-party hit-and-run, but the police report and security camera footage show the insured vehicle backed into a stationary mailbox post and utility pole with no other vehicle present. The damage pattern and paint transfer are consistent with a self-inflicted backing event. This is a material misrepresentation of the cause of loss, which is subject to the policy's fraud provision.",
+      "_expected_evidence_citations": [
+        "FNOL Section B — reported hit-and-run by an unknown dark SUV",
+        "Police report narrative — single-vehicle backing collision, no other vehicle observed",
+        "Police report — neighbor witness statement confirming the insured backed into the mailbox",
+        "Damage photos — white paint transfer on mailbox and no third-party paint transfer"
+      ],
+      "confidence": 0.94
+    }
+  ],
+
+  "expected_letter": {
+    "letter_type": "denial",
+    "_subject_template": "Constellation Insurance Claim {claim_number} — Coverage Denied",
+    "_body_summary": "Acknowledges receipt of FNOL and explains that the claim is denied because the insured materially misrepresented the cause of loss. Cites the policy's Fraud / Intentional Misrepresentation provision (Part VII, Section C) and notes that the damage evidence is consistent with a single-vehicle backing event rather than a hit-and-run. Advises the insured of appeal rights and next steps for any dispute.",
+    "_must_cite_policy_sections": [
+      "Part VII, Section C — Fraud / Intentional Misrepresentation"
+    ]
+  }
+}
