@@ -16,7 +16,8 @@ Organization:
 """
 from __future__ import annotations
 
-from datetime import date, datetime
+#from datetime import date, datetime
+from datetime import date, datetime, timezone
 from decimal import Decimal
 from enum import Enum
 from typing import Optional
@@ -212,7 +213,8 @@ class ParsedDocument(BaseModel):
     pages: list[Page]
     full_text: str
     sha256: str = Field(..., description="Content hash for deduplication")
-    ingested_at: datetime = Field(default_factory=datetime.utcnow)
+    #ingested_at: datetime = Field(default_factory=datetime.utcnow)
+    ingested_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     metadata: dict = Field(default_factory=dict)
 
 
@@ -367,7 +369,7 @@ class DraftLetter(BaseModel):
     subject: str
     body: str
     cited_policy_sections: list[Citation] = Field(default_factory=list)
-    generated_at: datetime = Field(default_factory=datetime.utcnow)
+    generated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 # ============================================================
@@ -398,13 +400,13 @@ class ClaimState(BaseModel):
     )
     trace: list[AgentStep] = Field(default_factory=list)
 
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
     def append_step(self, step: AgentStep) -> None:
         """Convenience method for nodes to log their work."""
         self.trace.append(step)
-        self.updated_at = datetime.utcnow()
+        self.updated_at = datetime.now(timezone.utc)  #datetime.utcnow()
 
 
 # ============================================================
